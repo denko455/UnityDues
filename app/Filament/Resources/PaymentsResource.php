@@ -50,7 +50,8 @@ class PaymentsResource extends Resource
                 ])
                     ->schema([
                         TextInput::make('document_number')
-                            ->label('Broj dokumenta'),
+                            ->label('Broj dokumenta')
+                            ->required(),
                         DatePicker::make('document_date')
                             ->label('Datum documenta')
                             ->native(false)
@@ -62,22 +63,22 @@ class PaymentsResource extends Resource
                             ->label('Razlog plaćanja')
                             ->options($items)
                             ->required(),
-                        TextInput::make('year')
-                            ->label('Godina')
-                            ->numeric()
-                            ->minValue(2000)
-                            ->maxValue(9999)
-                            ->reactive()
-                            ->afterStateHydrated(function (TextInput $component, $state) {
-                                $date = null;
-                                if(!isset($state)) {
-                                    $date = date('Y');
-                                } else {
-                                    $date = date('Y', strtotime($state));
-                                }
-                                $component->state($date);
-                            })
-                            ->dehydrateStateUsing(fn ($state) => $state.'-01-01'),
+                        // TextInput::make('year')
+                        //     ->label('Godina')
+                        //     ->numeric()
+                        //     ->minValue(2000)
+                        //     ->maxValue(9999)
+                        //     ->reactive()
+                        //     ->afterStateHydrated(function (TextInput $component, $state) {
+                        //         $date = null;
+                        //         if(!isset($state)) {
+                        //             $date = date('Y');
+                        //         } else {
+                        //             $date = date('Y', strtotime($state));
+                        //         }
+                        //         $component->state($date);
+                        //     })
+                        //     ->dehydrateStateUsing(fn ($state) => $state.'-01-01'),
                     ])
                     ->columnSpan(1),
                 TextInput::make('value')

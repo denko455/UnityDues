@@ -12,15 +12,11 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Model;
-use Filament\Forms\Get;
 
 use Filament\Tables\Enums\FiltersLayout;
-use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Columns\Summarizers\Sum;
-
-use Filament\Actions\Action;
-use Filament\Support\View\Components\Modal;
+use Filament\Tables\Columns\Layout\Split;
 
 class ListPayments extends ListRecords
 {
