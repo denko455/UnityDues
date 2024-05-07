@@ -3,16 +3,9 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UsersResource\Pages;
-use App\Filament\Resources\UsersResource\RelationManagers;
 use App\Models\User;
-use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Table;
 use Filament\Navigation\NavigationItem;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class UsersResource extends Resource
 {
@@ -25,6 +18,8 @@ class UsersResource extends Resource
             NavigationItem::make()
                 ->icon('heroicon-o-user-group')
                 ->label('Korisnici')
+                ->group('Admin')
+                ->sort(1)
                 ->url(route('filament.admin.resources.users.index'))
         ];
     }

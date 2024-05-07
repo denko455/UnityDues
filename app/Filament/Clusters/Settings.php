@@ -15,6 +15,7 @@ class Settings extends Cluster
                 ->label('Postavke')
                 ->icon('heroicon-o-squares-2x2')
                 ->sort(3)
+                ->group('Admin')
                 ->url(route('filament.admin.settings.resources.banks.index'))
         ];
     }

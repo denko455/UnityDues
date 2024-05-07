@@ -4,6 +4,7 @@ namespace App\Filament\Resources\PaymentsResource\Pages;
 
 use App\Filament\Resources\PaymentsResource;
 use App\Models\PaymentItems;
+use App\Models\Banks;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Tables\Table;
@@ -11,6 +12,15 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Model;
+use Filament\Forms\Get;
+
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Columns\Summarizers\Sum;
+
+use Filament\Actions\Action;
+use Filament\Support\View\Components\Modal;
 
 class ListPayments extends ListRecords
 {
@@ -36,6 +46,8 @@ class ListPayments extends ListRecords
 
     public function table(Table $table): Table
     {
+        $banks =  Banks::all()->pluck("name", "id");
+        $paymentItems = PaymentItems::all()->pluck("name","id");
         return $table
             ->columns([
                 IconColumn::make('payment_item.type')
@@ -47,9 +59,17 @@ class ListPayments extends ListRecords
                     ->colors([
                         'success' => 'in',
                         'danger' => 'out',
-                    ]),
+                    ]),                
                 TextColumn::make('document_number')
                     ->label('Broj dokumenta')
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make('')
+                    ->label('Član')
+                    ->default('-')
+                    ->formatStateUsing(function(Model $record){
+                        return $record->member->getFullNameAttribute();
+                    })
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('document_date')
@@ -61,11 +81,26 @@ class ListPayments extends ListRecords
                     ->sortable(),
                 TextColumn::make('value')->money("EUR", true)
                     ->label("Vrijedonst")
+                    ->summarize(Sum::make()->label('Ukupno')->money('EUR', true))
                     ->sortable(),
                 TextColumn::make('bank.name')
                     ->label('Banka'),
-                TextColumn::make('remarks')->default('-')
+                IconColumn::make('remarks')
                     ->label('Bilješke')
+                    ->icon(function($state){
+                        return $state ? 'heroicon-o-envelope' :'';
+                    })
+                    ->hidden(fn($state) => !empty($state))
+                    ->action(
+                        Tables\Actions\Action::make('message')
+                        ->modalHeading('Bilješka')
+                        ->modalSubmitAction(false) 
+                        ->requiresConfirmation()
+                        ->modalIcon(null)
+                        ->modalDescription(function (Model $record){   
+                            return $record->remarks;
+                        })                        
+                    )
                     ->searchable(),
                 
                 TextColumn::make('status')
@@ -73,14 +108,25 @@ class ListPayments extends ListRecords
                     ->formatStateUsing(function($state){
                         $statuses = [
                             'draft' => 'Nacrt',
-                        'approved' => 'Odobreno',
+                            'approved' => 'Odobreno',
                         ];
                         return $statuses[$state];
                     })
                     ->sortable()
             ])
             ->defaultSort('document_date', 'desc')
-            ->filters([])
+            ->filters([
+                SelectFilter::make('status')
+                    ->options([
+                        'draft' => 'Nacrt',
+                        'approved' => 'Odobreno']),
+                SelectFilter::make('bank_id')
+                    ->label('Banka')
+                    ->options($banks->all()),
+                SelectFilter::make('payment_item_id')
+                    ->label('Razlog plačanja')
+                    ->options($paymentItems->all())
+            ], layout: FiltersLayout::Modal)
             ->bulkActions([])
             ->actions([
                 Tables\Actions\Action::make('potvrda_naplate')
@@ -97,6 +143,7 @@ class ListPayments extends ListRecords
                     Tables\Actions\DeleteAction::make(),
                 ])
                 
-            ]);
+            ])
+            ->defaultSort('id', 'desc');
     }
 }

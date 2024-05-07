@@ -11,34 +11,31 @@ use Filament\Navigation\NavigationItem;
 
 use App\Models\PaymentItems;
 use App\Models\Banks;
-use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Get;
-
-
+use Illuminate\Database\Eloquent\Model;
 
 class PaymentsResource extends Resource
 {
     protected static ?string $model = Payments::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';   
-
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';  
+    
     public static function getNavigationItems(): array
     {
         return [
             NavigationItem::make()
                 ->label('Plaćanja')
                 ->icon('heroicon-o-banknotes')
-                ->sort(2)
+                ->group('Admin')
+                ->sort(0)
                 ->url(route('filament.admin.resources.payments.index'))
         ];
     }
-    
+
     public static function form(Form $form): Form
     {
         $memberItems = new PaymentItems();
@@ -53,10 +50,7 @@ class PaymentsResource extends Resource
                 ])
                     ->schema([
                         TextInput::make('document_number')
-                            ->label('Broj dokumenta')
-                            ->disabled(function (Get $get) {
-                                return $get('status') == 'approved';
-                            }),
+                            ->label('Broj dokumenta'),
                         DatePicker::make('document_date')
                             ->label('Datum documenta')
                             ->native(false)
@@ -101,13 +95,7 @@ class PaymentsResource extends Resource
                     ->label('Bilješke')
             ]);
     }
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
-    }
-
+    
     public static function getPages(): array
     {
         return [
@@ -118,5 +106,30 @@ class PaymentsResource extends Resource
     public static function shouldRegisterNavigation(): bool
     {
         return auth()->user()->hasRole(["admin"]);
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        if(auth()->user()->hasRole(["admin"])) {
+            return ['document_number'];
+        }
+        return [];
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        if(auth()->user()->hasRole(["admin"])) {
+            $fmt = numfmt_create( 'de_DE', \NumberFormatter::CURRENCY );
+            return [
+                'Datum dokumenta' => date('d.m.Y', strtotime($record->document_date)) ?? '-',
+                'Ukupno' => numfmt_format_currency($fmt,  $record->total ?? 0, "EUR"),
+            ];
+        }
+        return [];
+    }
+
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return $record->document_number;
     }
 }

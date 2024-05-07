@@ -17,8 +17,7 @@ use Filament\Forms\Components\TextInput;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Get;
-use Filament\Forms\Set;
-use Illuminate\Support\Facades\Log;
+use Filament\Tables\Columns\Summarizers\Sum;
 
 class PaymentsRelationManager extends RelationManager
 {
@@ -143,6 +142,7 @@ class PaymentsRelationManager extends RelationManager
                 TextColumn::make('value')
                     ->label('Vrijedonst')
                     ->money('EUR', true)
+                    ->summarize(Sum::make()->label('Ukupno')->money('EUR', true))
                     ->alignRight(),
                 TextColumn::make('bank.name')
                     ->label('Banka'),
@@ -161,9 +161,7 @@ class PaymentsRelationManager extends RelationManager
             ])
             ->defaultSort('document_date', 'desc')
             ->heading('Plaćanja')
-            ->filters([
-                //
-            ])
+            ->filters([])
             ->headerActions([
                 Tables\Actions\CreateAction::make()
                 ->mutateFormDataUsing(function (array $data): array {
@@ -202,6 +200,7 @@ class PaymentsRelationManager extends RelationManager
                 }),
                 
             ])            
-            ->bulkActions([]);
+            ->bulkActions([])
+            ->defaultSort('id', 'desc');
     }
 }

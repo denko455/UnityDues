@@ -38,7 +38,6 @@ class ListMembers extends ListRecords
                 TextColumn::make('tel')
                     ->label("tel.")
                     ->default("-"),
-                TextColumn::make('no_family_members')->label('Broj članova porodice'),
             ]);
     }
     

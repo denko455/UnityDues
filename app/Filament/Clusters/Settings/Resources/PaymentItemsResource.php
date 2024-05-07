@@ -4,15 +4,12 @@ namespace App\Filament\Clusters\Settings\Resources;
 
 use App\Filament\Clusters\Settings;
 use App\Filament\Clusters\Settings\Resources\PaymentItemsResource\Pages;
-use App\Filament\Clusters\Settings\Resources\PaymentItemsResource\RelationManagers;
+use Illuminate\Database\Eloquent\Model;
 use App\Models\PaymentItems;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 use Filament\Navigation\NavigationItem;
 use Filament\Tables\Columns\TextColumn;
@@ -21,6 +18,9 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Get;
+
 
 class PaymentItemsResource extends Resource
 {
@@ -39,9 +39,7 @@ class PaymentItemsResource extends Resource
                 ->sort(1)
                 ->url(route('filament.admin.settings.resources.payment-items.index'))
         ];
-    }
-
-    
+    }  
     
 
     public static function form(Form $form): Form
@@ -57,7 +55,7 @@ class PaymentItemsResource extends Resource
                 ])
                 ->required(),
                 Checkbox::make('to_members')->label('Kod članova')->inline(),
-                Checkbox::make('to_payment')->label('Kod plaćanja')->inline(),
+                Checkbox::make('to_payments')->label('Kod plaćanja')->inline(),
                 Textarea::make('description')->label('Bilješka')->maxLength(255)
             ]);
     }
@@ -89,11 +87,10 @@ class PaymentItemsResource extends Resource
                      default => 'heroicon-o-minus',
                 }),
             ])
-            ->filters([
-                //
-            ])
+            ->filters([])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([]);
     }

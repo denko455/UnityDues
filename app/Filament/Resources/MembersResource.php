@@ -5,14 +5,8 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\MembersResource\Pages;
 use App\Filament\Resources\MembersResource\RelationManagers;
 use App\Models\Members;
-use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Table;
 use Filament\Navigation\NavigationItem;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Database\Eloquent\Model;
 
 class MembersResource extends Resource

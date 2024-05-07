@@ -5,7 +5,6 @@ namespace App\Filament\Clusters\Settings\Resources;
 use App\Filament\Clusters\Settings;
 use App\Filament\Clusters\Settings\Resources\BanksResource\Pages;
 use App\Models\Banks;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -53,6 +52,7 @@ class BanksResource extends Resource
             ->filters([])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([]);
     } 
