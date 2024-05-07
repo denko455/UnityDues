@@ -58,22 +58,22 @@ class PaymentsRelationManager extends RelationManager
                             ->label('Razlog plaćanja')
                             ->options($items)
                             ->required(),
-                        TextInput::make('year')
-                            ->label('Godina')
-                            ->numeric()
-                            ->minValue(2000)
-                            ->maxValue(9999)
-                            ->reactive()
-                            ->afterStateHydrated(function (TextInput $component, $state) {
-                                $date = null;
-                                if(!isset($state)) {
-                                    $date = date('Y');
-                                } else {
-                                    $date = date('Y', strtotime($state));
-                                }
-                                $component->state($date);
-                            })
-                            ->dehydrateStateUsing(fn ($state) => $state.'-01-01'),
+                        // TextInput::make('year')
+                        //     ->label('Godina')
+                        //     ->numeric()
+                        //     ->minValue(2000)
+                        //     ->maxValue(9999)
+                        //     ->reactive()
+                        //     ->afterStateHydrated(function (TextInput $component, $state) {
+                        //         $date = null;
+                        //         if(!isset($state)) {
+                        //             $date = date('Y');
+                        //         } else {
+                        //             $date = date('Y', strtotime($state));
+                        //         }
+                        //         $component->state($date);
+                        //     })
+                        //     ->dehydrateStateUsing(fn ($state) => $state.'-01-01'),
                     ])
                     ->columnSpan(1),
                 TextInput::make('value')
@@ -130,15 +130,15 @@ class PaymentsRelationManager extends RelationManager
                     ->sortable(),
                 TextColumn::make('payment_item.name')
                     ->label('Razlog plaćanja'),
-                TextColumn::make('year')
-                    ->label('Godina')
-                    ->formatStateUsing(function($state){
-                        if($state == '-')
-                            return $state;
-                        else return date('Y', strtotime($state));
-                    })
-                    ->default('-')
-                    ->sortable(),
+                // TextColumn::make('year')
+                //     ->label('Godina')
+                //     ->formatStateUsing(function($state){
+                //         if($state == '-')
+                //             return $state;
+                //         else return date('Y', strtotime($state));
+                //     })
+                //     ->default('-')
+                //     ->sortable(),
                 TextColumn::make('value')
                     ->label('Vrijedonst')
                     ->money('EUR', true)
