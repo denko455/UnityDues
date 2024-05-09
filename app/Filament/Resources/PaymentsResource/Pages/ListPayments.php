@@ -17,6 +17,9 @@ use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\Layout\Split;
+use Filament\Resources\Components\Tab;
+
+
 
 class ListPayments extends ListRecords
 {
@@ -60,14 +63,10 @@ class ListPayments extends ListRecords
                     ->label('Broj dokumenta')
                     ->sortable()
                     ->searchable(),
-                TextColumn::make('')
+                TextColumn::make('member.full_name')
                     ->label('Član')
                     ->default('-')
-                    ->formatStateUsing(function(Model $record){
-                        return $record->member->getFullNameAttribute();
-                    })
-                    ->sortable()
-                    ->searchable(),
+                    ->sortable(),
                 TextColumn::make('document_date')
                     ->label('Datum dokumenta')
                     ->date('d.m.Y')
@@ -139,7 +138,16 @@ class ListPayments extends ListRecords
                     Tables\Actions\DeleteAction::make(),
                 ])
                 
-            ])
+                ])
             ->defaultSort('id', 'desc');
+    }
+
+    public function getTabs(): array
+    {
+        return [
+            null => Tab::make('Sve'),
+            'Ulaz' => Tab::make()->query(fn ($query) => $query->select('payments.*')->leftJoin('payment_items', 'payment_item_id', '=', 'payment_items.id')->where('payment_items.type', 'in')),
+            'Izlaz' => Tab::make()->query(fn ($query) => $query->select('payments.*')->leftJoin('payment_items', 'payment_item_id', '=', 'payment_items.id')->where('payment_items.type', 'out'))
+        ];
     }
 }
