@@ -17,7 +17,11 @@ use Filament\Forms\Components\TextInput;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Get;
-use Filament\Tables\Columns\Summarizers\Sum;
+use Filament\Forms\Components\Fieldset;
+use Illuminate\Database\Query\Builder;
+use Filament\Tables\Columns\Summarizers\Summarizer;
+use Filament\Tables\Columns\IconColumn;
+
 
 class PaymentsRelationManager extends RelationManager
 {
@@ -30,23 +34,23 @@ class PaymentsRelationManager extends RelationManager
 
         $baks = Banks::getBanks();
 
-        return $form
+         return $form
             ->schema([
-                Hidden::make('member_id')->afterStateHydrated(function (Hidden $component, $state) {
-                    $member_id = $component->getContainer()->getLivewire()->ownerRecord->getAttributeValue('id');
-                    if (is_null($state))
-                        $state = $member_id;
-                    $component->state($state);
-                }),
                 Grid::make([
                     'default' => 2
                 ])
+                ->schema([
+                    Hidden::make('member_id')->afterStateHydrated(function (Hidden $component, $state) {
+                        $member_id = $component->getContainer()->getLivewire()->ownerRecord->getAttributeValue('id');
+                        if (is_null($state))
+                            $state = $member_id;
+                        $component->state($state);
+                    }),
+                    Fieldset::make('')
                     ->schema([
                         TextInput::make('document_number')
                             ->label('Broj dokumenta')
-                            ->disabled(function (Get $get) {
-                                return $get('status') == 'approved';
-                            }),
+                            ->required(),
                         DatePicker::make('document_date')
                             ->label('Datum documenta')
                             ->native(false)
@@ -58,37 +62,35 @@ class PaymentsRelationManager extends RelationManager
                             ->label('Razlog plaćanja')
                             ->options($items)
                             ->required(),
-                        // TextInput::make('year')
-                        //     ->label('Godina')
-                        //     ->numeric()
-                        //     ->minValue(2000)
-                        //     ->maxValue(9999)
-                        //     ->reactive()
-                        //     ->afterStateHydrated(function (TextInput $component, $state) {
-                        //         $date = null;
-                        //         if(!isset($state)) {
-                        //             $date = date('Y');
-                        //         } else {
-                        //             $date = date('Y', strtotime($state));
-                        //         }
-                        //         $component->state($date);
-                        //     })
-                        //     ->dehydrateStateUsing(fn ($state) => $state.'-01-01'),
-                    ])
-                    ->columnSpan(1),
-                TextInput::make('value')
-                    ->label('Vrijedonst')
-                    ->default(0.00)
-                    ->numeric(true)
-                    ->minValue(0.01)
-                    ->suffix('EUR')
-                    ->required(),
-                Select::make('bank_id')
-                    ->label('Banka')
-                    ->options($baks)
-                    ->required(),
-                Textarea::make('remarks')
-                    ->label('Bilješke')
+                        
+                        Textarea::make('remarks')
+                            ->label('Bilješke')
+                    ]),
+                    Fieldset::make('')
+                    ->schema([
+                        TextInput::make('value')
+                            ->label('Vrijedonst')
+                            ->default(0.00)
+                            ->numeric(true)
+                            ->minValue(0.01)
+                            ->suffix(fn (Get $get)=>$get('currency'))
+                            ->required(),
+                        Select::make('currency')
+                            ->label('Valuta')
+                            ->default('EUR')
+                            ->options([
+                                'EUR'=>'Euro (EUR)',
+                                'CHF'=>'Švicarska Franka (CHF)',
+                                'USD'=>'Američki dolar (USD)',                                
+                            ])
+                            ->live()                
+                            ->required(),
+                        Select::make('bank_id')
+                            ->label('Banka')
+                            ->options($baks)
+                            ->required(),
+                    ]),
+                ])                
             ]);
     }
 
@@ -123,32 +125,73 @@ class PaymentsRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('document_number')
                     ->label('Broj dokumenta')
-                    ->default('-'),
-                TextColumn::make('document_date')
-                    ->label('Datum dokumenta')
-                    ->date('d.m.Y')
-                    ->sortable(),
+                    ->icon(function (Model $record) {
+                        if ($record->payment_item->type === 'in') {
+                            return 'heroicon-o-arrow-trending-up';
+                        }
+                        return 'heroicon-o-arrow-trending-down';
+                    })
+                    ->iconColor(function (Model $record) {
+                        if ($record->payment_item->type === 'in') {
+                            return 'success';
+                        }
+                        return 'danger';
+                    })
+                    ->description(fn (Model $record): string => date('d.m.Y', strtotime($record->document_date))),
                 TextColumn::make('payment_item.name')
-                    ->label('Razlog plaćanja'),
-                // TextColumn::make('year')
-                //     ->label('Godina')
-                //     ->formatStateUsing(function($state){
-                //         if($state == '-')
-                //             return $state;
-                //         else return date('Y', strtotime($state));
-                //     })
-                //     ->default('-')
-                //     ->sortable(),
-                TextColumn::make('value')
-                    ->label('Vrijedonst')
-                    ->money('EUR', true)
-                    ->summarize(Sum::make()->label('Ukupno')->money('EUR', true))
-                    ->alignRight(),
+                    ->label('Razlog plaćanja'),                    
                 TextColumn::make('bank.name')
                     ->label('Banka'),
-                TextColumn::make('remarks')
+                TextColumn::make('value')
+                    ->label('Vrijedonst')
+                    ->money(function(Model $record){
+                        return $record->currency;
+                    }, true)
+                    ->summarize(                        
+                        Summarizer::make()
+                            ->label('Ukupno ')
+                            ->using(function(Builder $query){
+                                $query1In = clone $query;
+                                $query2In = clone $query;
+                                $query3In = clone $query;
+                                $query1Out = clone $query;
+                                $query2Out = clone $query;
+                                $query3Out = clone $query;
+                                
+                                $resEurIn = $query1In->join('payment_items', 'payments.payment_item_id', '=', 'payment_items.id')->where('payment_items.type', 'in')->where('currency', 'EUR')->sum('value'); // Get all the bindings
+                                $resChfIn = $query2In->join('payment_items', 'payments.payment_item_id', '=', 'payment_items.id')->where('payment_items.type', 'in')->where('currency', 'CHF')->sum('value'); // Get all the bindings
+                                $resUsdIn = $query3In->join('payment_items', 'payments.payment_item_id', '=', 'payment_items.id')->where('payment_items.type', 'in')->where('currency', 'USD')->sum('value'); // Get all the bindings
+                                $resEurOut = $query1Out->join('payment_items', 'payments.payment_item_id', '=', 'payment_items.id')->where('payment_items.type', 'out')->where('currency', 'EUR')->sum('value'); // Get all the bindings
+                                $resChfOut = $query2Out->join('payment_items', 'payments.payment_item_id', '=', 'payment_items.id')->where('payment_items.type', 'out')->where('currency', 'CHF')->sum('value'); // Get all the bindings
+                                $resUsdOut = $query3Out->join('payment_items', 'payments.payment_item_id', '=', 'payment_items.id')->where('payment_items.type', 'out')->where('currency', 'USD')->sum('value'); // Get all the bindings
+                                // dd($resEur);
+                                $srt = [];
+                                $oFormatter = new \NumberFormatter('de_DE', \NumberFormatter::CURRENCY);
+        
+                                if($resEurIn - $resEurOut) $srt[] = $oFormatter->formatCurrency($resEurIn - $resEurOut, 'EUR');
+                                if($resChfIn - $resChfOut) $srt[] = $oFormatter->formatCurrency($resChfIn - $resChfOut, 'CHF');
+                                if($resUsdIn - $resUsdOut) $srt[] = $oFormatter->formatCurrency($resUsdIn - $resUsdOut, 'USD');
+                                return implode(', ', $srt);
+                            })
+                        )
+                    ->alignRight(),
+                IconColumn::make('remarks')
                     ->label('Bilješke')
-                    ->default('-'),                
+                    ->icon(function ($state) {
+                        return $state ? 'heroicon-o-envelope' : '';
+                    })
+                    ->visible(fn($state) => empty ($state))
+                    ->alignCenter(true)
+                    ->action(
+                        Tables\Actions\Action::make('message')
+                            ->modalHeading('Bilješka')
+                            ->modalSubmitAction(false)
+                            ->requiresConfirmation()
+                            ->modalIcon(null)
+                            ->modalDescription(function (Model $record) {
+                                return $record->remarks;
+                            })
+                    ),               
                 TextColumn::make('status')
                     ->label('Status')
                     ->formatStateUsing(function($state){
@@ -157,6 +200,13 @@ class PaymentsRelationManager extends RelationManager
                             'approved' => 'Odobreno',
                         ];
                         return $statuses[$state];
+                    })
+                    ->badge()
+                    ->grow(false)
+                    ->alignCenter()
+                    ->color(function($state){
+                        if($state === 'draft') return 'gray';
+                        if($state === 'approved') return 'success';
                     })
             ])
             ->defaultSort('document_date', 'desc')
@@ -169,18 +219,17 @@ class PaymentsRelationManager extends RelationManager
                     $data['total'] = $data['value']; 
                      return $data;
                 }),
-            ])
-            
-            ->actions([
-                Tables\Actions\Action::make('potvrda_naplate')
-                ->label("Odobri")
-                ->visible(fn (Model $record)=> auth()->user()->hasRole(["admin"]) && $record->status === 'draft')
-                ->action(function(Model $record){
-                    $record->updated_by = auth()->user()->id;
-                    $record->status = "approved";
-                    $record->save();
-                }),
+            ])            
+            ->actions([                
                 Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('potvrda_naplate')
+                    ->label("Odobri")
+                    ->visible(fn (Model $record)=> auth()->user()->hasRole(["admin"]) && $record->status === 'draft')
+                    ->action(function(Model $record){
+                        $record->updated_by = auth()->user()->id;
+                        $record->status = "approved";
+                        $record->save();
+                    }),
                     Tables\Actions\EditAction::make()
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['updated_by'] = auth()->user()->id;    

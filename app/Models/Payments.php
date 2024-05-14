@@ -28,6 +28,41 @@ class Payments extends Model
         return $this->belongsTo(Banks::class, 'bank_id');
     }
 
+    public static function getCount($status, $userId = null){
+        $count = self::where('status', $status);
+        if($userId != null){
+            $count->where('created_by', $userId);
+        }
+        return $count->count();
+    }
+
+    public static function getValueSum($status, $userId = null){
+
+        $aSum = null;
+        if($userId != null){
+            $aSum = self::groupBy('currency')
+                ->selectRaw('sum(value) as value, currency')        
+                ->where('created_by', $userId)
+                ->where('status', $status)
+                ->orderBy('currency','desc')
+                ->pluck('value', 'currency');
+        } else {
+            $aSum = self::groupBy('currency')
+                ->selectRaw('sum(value) as value, currency')        
+                ->where('status', $status)
+                ->orderBy('currency','desc')
+                ->pluck('value', 'currency');
+        }
+
+        $oFormatter = new \NumberFormatter('de_DE', \NumberFormatter::CURRENCY);
+        $aStr = [];
+        foreach($aSum as $currency => $value){
+            $aStr[] = $oFormatter->formatCurrency($value, $currency);
+        }
+        return implode(', ', $aStr);
+    }
+
+
     public static function getIncomePayments(){
         return Payments::whereHas('payment_item', function ($query) {
             return $query->where('type', 'income');

@@ -7,7 +7,7 @@ use App\Models\Payments;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Navigation\NavigationItem;
-
+use Filament\Forms\Components\Fieldset;
 
 use App\Models\PaymentItems;
 use App\Models\Banks;
@@ -17,6 +17,9 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Illuminate\Database\Eloquent\Model;
+
+use Filament\Forms\Get;
+
 
 class PaymentsResource extends Resource
 {
@@ -48,6 +51,8 @@ class PaymentsResource extends Resource
                 Grid::make([
                     'default' => 2
                 ])
+                ->schema([
+                    Fieldset::make('')
                     ->schema([
                         TextInput::make('document_number')
                             ->label('Broj dokumenta')
@@ -63,37 +68,35 @@ class PaymentsResource extends Resource
                             ->label('Razlog plaćanja')
                             ->options($items)
                             ->required(),
-                        // TextInput::make('year')
-                        //     ->label('Godina')
-                        //     ->numeric()
-                        //     ->minValue(2000)
-                        //     ->maxValue(9999)
-                        //     ->reactive()
-                        //     ->afterStateHydrated(function (TextInput $component, $state) {
-                        //         $date = null;
-                        //         if(!isset($state)) {
-                        //             $date = date('Y');
-                        //         } else {
-                        //             $date = date('Y', strtotime($state));
-                        //         }
-                        //         $component->state($date);
-                        //     })
-                        //     ->dehydrateStateUsing(fn ($state) => $state.'-01-01'),
-                    ])
-                    ->columnSpan(1),
-                TextInput::make('value')
-                    ->label('Vrijedonst')
-                    ->default(0.00)
-                    ->numeric(true)
-                    ->minValue(0.01)
-                    ->suffix('EUR')
-                    ->required(),
-                Select::make('bank_id')
-                    ->label('Banka')
-                    ->options($baks)
-                    ->required(),
-                Textarea::make('remarks')
-                    ->label('Bilješke')
+                        
+                        Textarea::make('remarks')
+                            ->label('Bilješke')
+                    ]),
+                    Fieldset::make('')
+                    ->schema([
+                        TextInput::make('value')
+                            ->label('Vrijedonst')
+                            ->default(0.00)
+                            ->numeric(true)
+                            ->minValue(0.01)
+                            ->suffix(fn (Get $get)=>$get('currency'))
+                            ->required(),
+                        Select::make('currency')
+                            ->label('Valuta')
+                            ->default('EUR')
+                            ->options([
+                                'EUR'=>'Euro (EUR)',
+                                'CHF'=>'Švicarska Franka (CHF)',
+                                'USD'=>'Američki dolar (USD)',                                
+                            ])
+                            ->live()                
+                            ->required(),
+                        Select::make('bank_id')
+                            ->label('Banka')
+                            ->options($baks)
+                            ->required(),
+                    ]),
+                ])                
             ]);
     }
     
@@ -123,7 +126,7 @@ class PaymentsResource extends Resource
             $fmt = numfmt_create( 'de_DE', \NumberFormatter::CURRENCY );
             return [
                 'Datum dokumenta' => date('d.m.Y', strtotime($record->document_date)) ?? '-',
-                'Ukupno' => numfmt_format_currency($fmt,  $record->total ?? 0, "EUR"),
+                'Ukupno' => numfmt_format_currency($fmt,  $record->total ?? 0, $record->currency),
             ];
         }
         return [];
