@@ -3,20 +3,21 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PaymentsResource\Pages;
+use Illuminate\Database\Eloquent\Model;
 use App\Models\Payments;
+use App\Models\PaymentItems;
+use App\Models\Banks;
+use App\Models\Projects;
+
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Navigation\NavigationItem;
 use Filament\Forms\Components\Fieldset;
-
-use App\Models\PaymentItems;
-use App\Models\Banks;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Illuminate\Database\Eloquent\Model;
 
 use Filament\Forms\Get;
 
@@ -39,13 +40,13 @@ class PaymentsResource extends Resource
         ];
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()->hasRole(["admin"]);
+    }
+
     public static function form(Form $form): Form
     {
-        $memberItems = new PaymentItems();
-        $items = $memberItems->getMembersPaymentItemsTextList();
-
-        $baks = Banks::getBanks();
-
         return $form
             ->schema([
                 Grid::make([
@@ -65,8 +66,8 @@ class PaymentsResource extends Resource
                             ->default(now())
                             ->required(),
                         Select::make('payment_item_id')
-                            ->label('Razlog plaćanja')
-                            ->options($items)
+                            ->label('Svrha plaćanja')
+                            ->options(PaymentItems::pluck('name', 'id'))
                             ->required(),
                         
                         Textarea::make('remarks')
@@ -93,8 +94,11 @@ class PaymentsResource extends Resource
                             ->required(),
                         Select::make('bank_id')
                             ->label('Banka')
-                            ->options($baks)
+                            ->options(Banks::pluck('name', 'id'))
                             ->required(),
+                        Select::make('project_id')
+                            ->label('Projekat')
+                            ->options(Projects::where('is_active', true)->pluck('name', 'id')),
                     ]),
                 ])                
             ]);
@@ -105,11 +109,6 @@ class PaymentsResource extends Resource
         return [
             'index' => Pages\ListPayments::route('/')
         ];
-    }
-
-    public static function shouldRegisterNavigation(): bool
-    {
-        return auth()->user()->hasRole(["admin"]);
     }
 
     public static function getGloballySearchableAttributes(): array

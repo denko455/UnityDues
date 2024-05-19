@@ -19,7 +19,7 @@ class MembersResource extends Resource
     {
         return [
             NavigationItem::make()
-                ->sort(1)
+                ->sort(2)
                 ->icon('heroicon-o-users')
                 ->label('Članovi')
                 ->url(route('filament.admin.resources.members.index'))

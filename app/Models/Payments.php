@@ -12,7 +12,7 @@ class Payments extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['member_id', 'payment_item_id', 'document_date', 'document_number', 'month', 'year', 'quantity', 'value',
+    protected $fillable = ['member_id', 'payment_item_id', 'document_date', 'document_number', 'month', 'year', 'quantity', 'value', 'project_id',
         'total', 'bank_id', 'currency', 'remarks', 'status', 'created_by', 'updated_by' ];
 
     public function member()
@@ -22,6 +22,11 @@ class Payments extends Model
     public function payment_item()
     {
         return $this->belongsTo(PaymentItems::class, 'payment_item_id');
+    }
+
+    public function projects()
+    {
+        return $this->belongsTo(Projects::class, 'project_id');
     }
     public function bank()
     {

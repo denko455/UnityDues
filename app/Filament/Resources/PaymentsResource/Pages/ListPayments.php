@@ -5,6 +5,7 @@ namespace App\Filament\Resources\PaymentsResource\Pages;
 use App\Filament\Resources\PaymentsResource;
 use App\Models\PaymentItems;
 use App\Models\Banks;
+use App\Models\Projects;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Tables\Table;
@@ -48,8 +49,6 @@ class ListPayments extends ListRecords
 
     public function table(Table $table): Table
     {
-        $banks = Banks::all()->pluck("name", "id");
-        $paymentItems = PaymentItems::all()->pluck("name", "id");
         return $table
             ->columns([
                 TextColumn::make('document_number')
@@ -74,7 +73,7 @@ class ListPayments extends ListRecords
                     ->default('-')
                     ->sortable(),
                 TextColumn::make('payment_item.name')
-                    ->label('Razlog plačanja')
+                    ->label('Svrha plaćanja')
                     ->sortable(),
                 TextColumn::make('bank.name')
                     ->label('Banka'),
@@ -158,10 +157,16 @@ class ListPayments extends ListRecords
                     ]),
                 SelectFilter::make('bank_id')
                     ->label('Banka')
-                    ->options($banks->all()),
+                    ->multiple()
+                    ->options(Banks::pluck("name", "id")),
                 SelectFilter::make('payment_item_id')
-                    ->label('Razlog plačanja')
-                    ->options($paymentItems->all())
+                    ->label('Svrha plaćanja')
+                    ->multiple()
+                    ->options(PaymentItems::pluck("name", "id")),
+                SelectFilter::make('project_id')
+                    ->label('Projekti')
+                    ->multiple()
+                    ->options(Projects::pluck("name", "id"))
             ], layout: FiltersLayout::Modal)
             ->bulkActions([])
             ->actions([
@@ -179,6 +184,32 @@ class ListPayments extends ListRecords
                     Tables\Actions\DeleteAction::make(),
                 ])
 
+            ])
+            ->headerActions([
+                // ExportAction::make()
+                //     ->exports([
+                //         ExcelExport::make('table')
+                //             ->withFilename(date('Y-m-d') . ' - Placanja')                            
+                //             ->fromTable()
+                //             // ->only([
+                //             //     'document_number', 'document_date', 'member.full_name', 
+                //             //     'payment_item.name','bank.name','value', 'currency', 'remarks'
+                //             // ])
+                //             ->except([
+                //                 'status',
+                //             ])
+                //             ->withColumns([
+                //                 Column::make('document_number')->heading('Broj dokumenta'),
+                //                 Column::make('document_date')->heading('Datum dokumenta'),      
+                //                 Column::make('member.full_name')->heading('Član'),
+                //                 Column::make('payment_item.name')->heading('Svrha plaćanja'),
+                //                 Column::make('bank.name')->heading('Banka'),
+                //                 Column::make('value')->heading("Vrijedonst"),
+                //                 Column::make('currency')->heading("Valuta"),
+                //                 Column::make('remarks')->heading('Bilješke'),
+                //         ])
+                //     ])
+                    // ->columnMapping(false)
             ])
             ->defaultSort('id', 'desc');
     }

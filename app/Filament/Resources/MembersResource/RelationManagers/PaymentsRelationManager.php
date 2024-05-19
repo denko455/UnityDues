@@ -4,6 +4,7 @@ namespace App\Filament\Resources\MembersResource\RelationManagers;
 
 use App\Models\PaymentItems;
 use App\Models\Banks;
+use App\Models\Projects;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
@@ -29,12 +30,7 @@ class PaymentsRelationManager extends RelationManager
 
     public function form(Form $form): Form
     {
-        $memberItems = new PaymentItems();
-        $items = $memberItems->getMembersPaymentItemsTextList();
-
-        $baks = Banks::getBanks();
-
-         return $form
+        return $form
             ->schema([
                 Grid::make([
                     'default' => 2
@@ -59,8 +55,8 @@ class PaymentsRelationManager extends RelationManager
                             ->default(now())
                             ->required(),
                         Select::make('payment_item_id')
-                            ->label('Razlog plaćanja')
-                            ->options($items)
+                            ->label('Svrha plaćanja')
+                            ->options(PaymentItems::pluck('name', 'id'))
                             ->required(),
                         
                         Textarea::make('remarks')
@@ -87,8 +83,11 @@ class PaymentsRelationManager extends RelationManager
                             ->required(),
                         Select::make('bank_id')
                             ->label('Banka')
-                            ->options($baks)
+                            ->options(Banks::pluck('name', 'id'))
                             ->required(),
+                        Select::make('project_id')
+                            ->label('Projekat')
+                            ->options(Projects::where('is_active', true)->pluck('name', 'id')),
                     ]),
                 ])                
             ]);
@@ -139,7 +138,7 @@ class PaymentsRelationManager extends RelationManager
                     })
                     ->description(fn (Model $record): string => date('d.m.Y', strtotime($record->document_date))),
                 TextColumn::make('payment_item.name')
-                    ->label('Razlog plaćanja'),                    
+                    ->label('Svrha plaćanja'),                    
                 TextColumn::make('bank.name')
                     ->label('Banka'),
                 TextColumn::make('value')
