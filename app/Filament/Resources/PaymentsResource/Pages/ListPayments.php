@@ -21,6 +21,7 @@ use Filament\Resources\Components\Tab;
 
 use Filament\Tables\Columns\Summarizers\Summarizer;
 use Illuminate\Database\Query\Builder;
+use Filament\Tables\Actions\Action;
 
 class ListPayments extends ListRecords
 {
@@ -158,16 +159,21 @@ class ListPayments extends ListRecords
                 SelectFilter::make('bank_id')
                     ->label('Banka')
                     ->multiple()
-                    ->options(Banks::pluck("name", "id")),
+                    ->options(Banks::pluck("name", "id")->all()),
                 SelectFilter::make('payment_item_id')
                     ->label('Svrha plaćanja')
                     ->multiple()
-                    ->options(PaymentItems::pluck("name", "id")),
+                    ->options(PaymentItems::pluck("name", "id")->all()),
                 SelectFilter::make('project_id')
                     ->label('Projekti')
                     ->multiple()
-                    ->options(Projects::pluck("name", "id"))
+                    ->options(Projects::pluck("name", "id")->all())
             ], layout: FiltersLayout::Modal)
+            ->deferFilters()
+            ->filtersApplyAction(
+                fn (Action $action) => $action
+                    ->label('Aktiviraj filter'),
+            )
             ->bulkActions([])
             ->actions([
                 Tables\Actions\ActionGroup::make([
