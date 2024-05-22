@@ -79,6 +79,7 @@ class Payments extends Model
                 $query->whereIn($key, $values);
             }
         }
+        $query->orderBy('document_date', 'desc');
         $list = $query->get();
         $data['list'] = $list;
         
