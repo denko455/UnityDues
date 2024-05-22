@@ -5,6 +5,7 @@ namespace App\Filament\Resources\PaymentsResource\Pages;
 use App\Filament\Resources\PaymentsResource;
 use App\Models\PaymentItems;
 use App\Models\Banks;
+use App\Models\Payments;
 use App\Models\Projects;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
@@ -22,6 +23,10 @@ use Filament\Resources\Components\Tab;
 use Filament\Tables\Columns\Summarizers\Summarizer;
 use Illuminate\Database\Query\Builder;
 use Filament\Tables\Actions\Action;
+
+use Illuminate\Http\Response;
+
+use App\CustomClasses\MyPdf;
 
 class ListPayments extends ListRecords
 {
@@ -71,6 +76,10 @@ class ListPayments extends ListRecords
                     ->searchable(),
                 TextColumn::make('member.full_name')
                     ->label('Član')
+                    ->default('-')
+                    ->sortable(),
+                TextColumn::make('project.name')
+                    ->label('Projekat')
                     ->default('-')
                     ->sortable(),
                 TextColumn::make('payment_item.name')
@@ -192,30 +201,21 @@ class ListPayments extends ListRecords
 
             ])
             ->headerActions([
-                // ExportAction::make()
-                //     ->exports([
-                //         ExcelExport::make('table')
-                //             ->withFilename(date('Y-m-d') . ' - Placanja')                            
-                //             ->fromTable()
-                //             // ->only([
-                //             //     'document_number', 'document_date', 'member.full_name', 
-                //             //     'payment_item.name','bank.name','value', 'currency', 'remarks'
-                //             // ])
-                //             ->except([
-                //                 'status',
-                //             ])
-                //             ->withColumns([
-                //                 Column::make('document_number')->heading('Broj dokumenta'),
-                //                 Column::make('document_date')->heading('Datum dokumenta'),      
-                //                 Column::make('member.full_name')->heading('Član'),
-                //                 Column::make('payment_item.name')->heading('Svrha plaćanja'),
-                //                 Column::make('bank.name')->heading('Banka'),
-                //                 Column::make('value')->heading("Vrijedonst"),
-                //                 Column::make('currency')->heading("Valuta"),
-                //                 Column::make('remarks')->heading('Bilješke'),
-                //         ])
-                //     ])
-                    // ->columnMapping(false)
+                Action::make("pdf_export")
+                ->label("Pdf Export")
+                ->action(function () {    
+                    
+                    $data = Payments::getPaymentData($this->getTable()->getFilters());
+                    $headers = [
+                        'Content-Type' => 'application/pdf',
+                    ];
+
+                    return response()->streamDownload(function() use ($data) {
+                        $pdf = new MyPdf();
+                        $pdf->getPaymentsReport($data);
+                        $pdf->Output('example_006.pdf', 'I');
+                    },'document.pdf', $headers);
+                })
             ])
             ->defaultSort('id', 'desc');
     }

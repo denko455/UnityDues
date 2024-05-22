@@ -24,7 +24,7 @@ class Payments extends Model
         return $this->belongsTo(PaymentItems::class, 'payment_item_id');
     }
 
-    public function projects()
+    public function project()
     {
         return $this->belongsTo(Projects::class, 'project_id');
     }
@@ -67,7 +67,44 @@ class Payments extends Model
         return implode(', ', $aStr);
     }
 
+    public static function getPaymentData($filters){
+        $data = [];
+        $query = self::query();
+        foreach($filters as $key => $filter){
+            $value = $filter->getState()['value'] ?? null;
+            $values = $filter->getState()['values'] ?? null;
+            if(!empty($value)){
+                $query->where($key, $value);
+            } else if(!empty($values)){
+                $query->whereIn($key, $values);
+            }
+        }
+        $list = $query->get();
+        $data['list'] = $list;
+        
+        $data['total_sum'] = self::getTotalSum($list->groupBy('currency', true));
 
+        $pItemsGroups = $list->groupBy('payment_item.name', true);
+        $data['payment_items_sum'] = [];
+        foreach($pItemsGroups as $key => $pItem){
+            $data['payment_items_sum'][$key] = self::getTotalSum($pItem->groupBy('currency', true));
+        }
+
+        return $data;
+    }
+
+    private static function getTotalSum($list){
+        $sum = [];
+        foreach($list as $key => $row){
+            $sum[$key] = $row->sum(function ($item) {
+                if($item['payment_item']['type'] === 'out'){
+                    return -1 * $item['value'];
+                }
+                return $item['value'];
+            });
+        }
+        return $sum;
+    }
     public static function getIncomePayments(){
         return Payments::whereHas('payment_item', function ($query) {
             return $query->where('type', 'income');
