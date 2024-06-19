@@ -80,12 +80,35 @@ class ListPayments extends ListRecords
                     ->sortable(),
                 TextColumn::make('project.name')
                     ->label('Projekat')
+                    ->tooltip(function (TextColumn $column): ?string {
+                        $state = $column->getState();                 
+                        if (strlen($state) <= $column->getCharacterLimit()) {
+                            return null;
+                        }
+                        return $state;
+                    })
                     ->default('-')
                     ->sortable(),
                 TextColumn::make('payment_item.name')
                     ->label('Svrha plaćanja')
+                    ->limit(20)
+                    ->tooltip(function (TextColumn $column): ?string {
+                        $state = $column->getState();                 
+                        if (strlen($state) <= $column->getCharacterLimit()) {
+                            return null;
+                        }
+                        return $state;
+                    })
                     ->sortable(),
                 TextColumn::make('bank.name')
+                    ->limit(20)
+                    ->tooltip(function (TextColumn $column): ?string {
+                        $state = $column->getState();                 
+                        if (strlen($state) <= $column->getCharacterLimit()) {
+                            return null;
+                        }
+                        return $state;
+                    })
                     ->label('Banka'),
                 TextColumn::make('value')->money(fn (Model $record) => $record->currency, true)
                     ->label("Vrijedonst")

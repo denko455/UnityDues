@@ -138,9 +138,23 @@ class PaymentsRelationManager extends RelationManager
                     })
                     ->description(fn (Model $record): string => date('d.m.Y', strtotime($record->document_date))),
                 TextColumn::make('payment_item.name')
-                    ->label('Svrha plaćanja'),                    
+                    ->label('Svrha plaćanja')
+                    ->tooltip(function (TextColumn $column): ?string {
+                        $state = $column->getState();                 
+                        if (strlen($state) <= $column->getCharacterLimit()) {
+                            return null;
+                        }
+                        return $state;
+                    }),                    
                 TextColumn::make('bank.name')
-                    ->label('Banka'),
+                    ->label('Banka')
+                    ->tooltip(function (TextColumn $column): ?string {
+                        $state = $column->getState();                 
+                        if (strlen($state) <= $column->getCharacterLimit()) {
+                            return null;
+                        }
+                        return $state;
+                    }),
                 TextColumn::make('value')
                     ->label('Vrijedonst')
                     ->money(function(Model $record){
