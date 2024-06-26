@@ -171,7 +171,14 @@
                     {{ number_format($value['value'], 2, ',', ' ') }}
                     {{ $value['currency'] }}
                 </td>
-                <td class="td"><i>{{ $value['remarks'] }}</i></td>
+                <td class="td"><i><?php 
+                    if($value["status"] === "draft"){
+                        echo "<div>Uplata nije potvrđena.</div>";
+                    } else if($value["status"] === "approved"){
+                        echo "<div>Uplata je potvrđena.</div>";
+                    }
+                    echo "<div>".$value['remarks']."<div>"; 
+                    ?></i></td>
             </tr>
             <?php }
             ; ?>
