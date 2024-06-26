@@ -91,6 +91,42 @@ class Payments extends Model
             $data['payment_items_sum'][$key] = self::getTotalSum($pItem->groupBy('currency', true));
         }
         return $data;
+    }   
+    public static function getProjectPaymentData($projectId){
+        $data = [];
+        $query = Projects::findOrFail($projectId);
+        $query->orderBy('payments.document_date', 'desc');
+        $payments = $query->payments;
+        $data["name"] = $query->name;
+        $data["description"] = $query->description;
+        $data['payments'] = $payments;
+        
+        $data['total_sum'] = self::getTotalSum($payments->groupBy('currency', true));
+
+        $pItemsGroups = $payments->groupBy('payment_item.name', true);
+        $data['payment_items_sum'] = [];
+        foreach($pItemsGroups as $key => $pItem){
+            $data['payment_items_sum'][$key] = self::getTotalSum($pItem->groupBy('currency', true));
+        }
+        return $data;
+    }
+
+    public static function getMemberPaymentData($memberId){
+        $data = [];
+        $query = Members::findOrFail($memberId);
+        $query->orderBy('payments.document_date', 'desc');
+        $payments = $query->payments;
+        $data["member"] = $query;
+        $data['payments'] = $payments;
+        
+        $data['total_sum'] = self::getTotalSum($payments->groupBy('currency', true));
+
+        $pItemsGroups = $payments->groupBy('payment_item.name', true);
+        $data['payment_items_sum'] = [];
+        foreach($pItemsGroups as $key => $pItem){
+            $data['payment_items_sum'][$key] = self::getTotalSum($pItem->groupBy('currency', true));
+        }
+        return $data;
     }
 
     private static function getTotalSum($list){

@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Filament\Tables\Columns\Summarizers\Summarizer;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Actions\Action;
 
 
 class PaymentsRelationManager extends RelationManager
@@ -118,6 +119,16 @@ class PaymentsRelationManager extends RelationManager
                         if($state === 'draft') return 'gray';
                         if($state === 'approved') return 'success';
                     })
+            ])
+            ->headerActions([
+                Action::make("dom_pdf_export")
+                    ->label("pdf")
+                    ->icon("heroicon-o-document-chart-bar")
+                    ->url(function () {
+                        $id=$this->getOwnerRecord()->getKey();
+                        return route('pdfProjectPayments', ["id" => $id]);
+                    })
+                    ->openUrlInNewTab()
             ])
             ->defaultSort('document_date', 'desc')
             ->heading('Plaćanja');

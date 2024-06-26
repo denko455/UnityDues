@@ -22,6 +22,7 @@ use Filament\Forms\Components\Fieldset;
 use Illuminate\Database\Query\Builder;
 use Filament\Tables\Columns\Summarizers\Summarizer;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Actions\Action;
 
 
 class PaymentsRelationManager extends RelationManager
@@ -261,7 +262,17 @@ class PaymentsRelationManager extends RelationManager
                     return false;
                 }),
                 
-            ])            
+            ])     
+            ->headerActions([
+                Action::make("dom_pdf_export")
+                    ->label("pdf")
+                    ->icon("heroicon-o-document-chart-bar")
+                    ->url(function () {
+                        $id=$this->getOwnerRecord()->getKey();
+                        return route('pdfMemberPayments', ["id" => $id]);
+                    })
+                    ->openUrlInNewTab()
+            ])       
             ->bulkActions([])
             ->defaultSort('id', 'desc');
     }
