@@ -5,11 +5,11 @@ namespace App\Providers\Filament;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use App\Filament\Widgets;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -32,6 +32,8 @@ class AdminPanelProvider extends PanelProvider
             ->passwordReset(null)
             ->profile(EditProfile::class)
             ->breadcrumbs(false)
+            // ->brandLogo(asset('img/app/logo.png'))
+            // ->brandLogoHeight('12rem')
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -43,7 +45,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                Widgets\AccountWidget::class,
+                Widgets\PaymentStatsOverview::class,
                 // Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
