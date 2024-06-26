@@ -67,12 +67,12 @@ class Payments extends Model
         return implode(', ', $aStr);
     }
 
-    public static function getPaymentData($filters){
+    public static function getPaymentData($filters = []){
         $data = [];
         $query = self::query();
         foreach($filters as $key => $filter){
-            $value = $filter->getState()['value'] ?? null;
-            $values = $filter->getState()['values'] ?? null;
+            $value = $filter->value ?? null;
+            $values = $filter->values ?? null;
             if(!empty($value)){
                 $query->where($key, $value);
             } else if(!empty($values)){
@@ -90,7 +90,6 @@ class Payments extends Model
         foreach($pItemsGroups as $key => $pItem){
             $data['payment_items_sum'][$key] = self::getTotalSum($pItem->groupBy('currency', true));
         }
-
         return $data;
     }
 

@@ -5,7 +5,6 @@ namespace App\Filament\Resources\PaymentsResource\Pages;
 use App\Filament\Resources\PaymentsResource;
 use App\Models\PaymentItems;
 use App\Models\Banks;
-use App\Models\Payments;
 use App\Models\Projects;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
@@ -23,10 +22,6 @@ use Filament\Resources\Components\Tab;
 use Filament\Tables\Columns\Summarizers\Summarizer;
 use Illuminate\Database\Query\Builder;
 use Filament\Tables\Actions\Action;
-
-use Illuminate\Http\Response;
-
-use App\CustomClasses\MyPdf;
 
 class ListPayments extends ListRecords
 {
@@ -224,21 +219,14 @@ class ListPayments extends ListRecords
 
             ])
             ->headerActions([
-                Action::make("pdf_export")
-                ->label("Pdf Export")
-                ->action(function () {    
-                    
-                    $data = Payments::getPaymentData($this->getTable()->getFilters());
-                    $headers = [
-                        'Content-Type' => 'application/pdf',
-                    ];
-
-                    return response()->streamDownload(function() use ($data) {
-                        $pdf = new MyPdf();
-                        $pdf->getPaymentsReport($data);
-                        $pdf->Output('example_006.pdf', 'I');
-                    },'document.pdf', $headers);
-                })
+                Action::make("dom_pdf_export")
+                    ->label("pdf")
+                    ->icon("heroicon-o-document-chart-bar")
+                    ->url(function () {
+                        $filter = base64_encode(json_encode($this->tableFilters));
+                        return route('pdfPayments', ["filter" => $filter]);
+                    })
+                    ->openUrlInNewTab()
             ])
             ->defaultSort('id', 'desc');
     }
