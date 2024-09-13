@@ -23,6 +23,10 @@ use Filament\Tables\Columns\Summarizers\Summarizer;
 use Illuminate\Database\Query\Builder;
 use Filament\Tables\Actions\Action;
 
+use Filament\Forms;
+use Filament\Tables\Filters\Filter;
+use Illuminate\Database\Eloquent\Builder as eBuilder;
+
 class ListPayments extends ListRecords
 {
     protected static string $resource = PaymentsResource::class;
@@ -183,6 +187,22 @@ class ListPayments extends ListRecords
                         'draft' => 'Nacrt',
                         'approved' => 'Odobreno'
                     ]),
+                Filter::make('created_at')
+                    ->form([
+                        Forms\Components\DatePicker::make('created_from'),
+                        Forms\Components\DatePicker::make('created_until'),
+                    ])
+                    ->query(function (eBuilder $query, array $data): eBuilder {
+                        return $query
+                            ->when(
+                                $data['created_from'],
+                                fn (eBuilder $query, $date): eBuilder => $query->whereDate('created_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['created_until'],
+                                fn (eBuilder $query, $date): eBuilder => $query->whereDate('created_at', '<=', $date),
+                            );
+                        }),
                 SelectFilter::make('bank_id')
                     ->label('Banka')
                     ->multiple()
@@ -205,7 +225,9 @@ class ListPayments extends ListRecords
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\Action::make('potvrda_naplate')
-                        ->label("Odobri")
+                        ->label("Odobrite")
+                        ->icon("heroicon-m-check-circle")
+                        ->color("success")
                         ->visible(fn(Model $record) => auth()->user()->hasRole(["admin"]) && $record->status === 'draft')
                         ->action(function (Model $record) {
                             $record->updated_by = auth()->user()->id;
@@ -220,7 +242,8 @@ class ListPayments extends ListRecords
             ])
             ->headerActions([
                 Action::make("dom_pdf_export")
-                    ->label("pdf")
+                    ->hiddenLabel()
+                    ->color("danger")
                     ->icon("heroicon-o-document-chart-bar")
                     ->url(function () {
                         $filter = base64_encode(json_encode($this->tableFilters));

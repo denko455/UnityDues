@@ -233,11 +233,22 @@ class PaymentsRelationManager extends RelationManager
                     $data['total'] = $data['value']; 
                      return $data;
                 }),
+                Action::make("dom_pdf_export")
+                    ->hiddenLabel()
+                    ->color("danger")
+                    ->icon("heroicon-o-document-chart-bar")
+                    ->url(function () {
+                        $id=$this->getOwnerRecord()->getKey();
+                        return route('pdfMemberPayments', ["id" => $id]);
+                    })
+                    ->openUrlInNewTab()
             ])            
             ->actions([                
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\Action::make('potvrda_naplate')
-                    ->label("Odobri")
+                    ->icon("heroicon-m-check-circle")
+                    ->color("success")
+                    ->label("Odobrite")
                     ->visible(fn (Model $record)=> auth()->user()->hasRole(["admin"]) && $record->status === 'draft')
                     ->action(function(Model $record){
                         $record->updated_by = auth()->user()->id;
@@ -263,16 +274,6 @@ class PaymentsRelationManager extends RelationManager
                 }),
                 
             ])     
-            ->headerActions([
-                Action::make("dom_pdf_export")
-                    ->label("pdf")
-                    ->icon("heroicon-o-document-chart-bar")
-                    ->url(function () {
-                        $id=$this->getOwnerRecord()->getKey();
-                        return route('pdfMemberPayments', ["id" => $id]);
-                    })
-                    ->openUrlInNewTab()
-            ])       
             ->bulkActions([])
             ->defaultSort('id', 'desc');
     }

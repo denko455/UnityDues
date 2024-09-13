@@ -122,7 +122,8 @@ class PaymentsRelationManager extends RelationManager
             ])
             ->headerActions([
                 Action::make("dom_pdf_export")
-                    ->label("pdf")
+                    ->hiddenLabel()
+                    ->color("danger")
                     ->icon("heroicon-o-document-chart-bar")
                     ->url(function () {
                         $id=$this->getOwnerRecord()->getKey();
