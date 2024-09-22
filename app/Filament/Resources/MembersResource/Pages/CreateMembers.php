@@ -11,6 +11,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 
+use App\Models\Residences;
+
 class CreateMembers extends CreateRecord
 {
     protected static string $resource = MembersResource::class;
@@ -28,6 +30,10 @@ class CreateMembers extends CreateRecord
                         ->required(),
                     TextInput::make('id_number')
                         ->label('Lični broj'),
+                    Select::make('residence_id')
+                        ->label('Prebivalište')
+                        ->options(Residences::pluck('name', 'id'))
+                        ->required(),
                     // TextInput::make('no_family_members')
                     //     ->label('Broj članova porodice')
                     //     ->numeric()

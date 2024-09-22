@@ -31,7 +31,11 @@ class ListMembers extends ListRecords
                 TextColumn::make('id_number')
                     ->label('Lični broj')
                     ->default("-"),
-                TextColumn::make('full_name')->label('Ime i Prezime'),
+                TextColumn::make('full_name')
+                    ->label('Ime i Prezime'),
+                TextColumn::make('residence.name')
+                    ->label('Prebivalište')
+                    ->default("-"),
                 TextColumn::make('email')
                     ->label('Email')
                     ->default("-"),

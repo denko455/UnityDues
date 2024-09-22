@@ -9,7 +9,7 @@ class Members extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['first_name', 'last_name', 'email', 'tel', 'id_number', 'no_family_members'];
+    protected $fillable = ['first_name', 'last_name', 'email', 'tel', 'id_number', 'no_family_members', 'residence_id'];
 
     public function getFullNameAttribute()
     {
@@ -21,6 +21,10 @@ class Members extends Model
         return $this->hasMany(Payments::class, 'member_id');
     }
 
+    public function residence()
+    {
+        return $this->belongsTo(Residences::class, 'residence_id');
+    }
     public function getCsv($filter){
 
     }
