@@ -105,6 +105,7 @@
                 <th>Ime</th>
                 <th>Prezime</th>
                 <th>Lični broj</th>
+                <th>Prebivalište</th>
                 <th>Email</th>
                 <th>Tel</th>
             </tr>
@@ -114,6 +115,7 @@
                 <td>{{$member->first_name ?? '-'}}</td>           
                 <td>{{$member->last_name ?? '-'}}</td>
                 <td>{{$member->id_number ?? '-'}}</td>
+                <td>{{$member->residence->name ?? '-'}}</td>
                 <td>{{$member->email ?? '-'}}</td>
                 <td>{{$member->tel ?? '-'}}</td>
             </tr>

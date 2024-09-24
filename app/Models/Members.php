@@ -25,7 +25,25 @@ class Members extends Model
     {
         return $this->belongsTo(Residences::class, 'residence_id');
     }
-    public function getCsv($filter){
-
+    public static function getMembers($filters = []){
+        $data = [];
+        $query = self::query();
+        foreach($filters as $key => $filter){
+            $value = $filter->value ?? null;
+            $values = $filter->values ?? null;
+            if(!empty($value)){
+                $query->where($key, $value);
+            } else if(!empty($values)){
+                $query->whereIn($key, $values);
+            }
+        }
+        $queryCount = clone $query;
+        $group = $queryCount->select(\DB::raw('residences.name, count(*) as residence_count'))
+        ->join('residences','residences.id', 'members.residence_id')
+        ->groupBy("residences.name");
+        $query->orderBy('first_name', 'desc');
+        $data['list'] = $query->get();
+        $data['residences'] = $group->get();
+        return $data;
     }
 }
