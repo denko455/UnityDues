@@ -41,7 +41,7 @@ class Members extends Model
         $group = $queryCount->select(\DB::raw('residences.name, count(*) as residence_count'))
         ->join('residences','residences.id', 'members.residence_id')
         ->groupBy("residences.name");
-        $query->orderBy('first_name', 'desc');
+        $query->orderBy('first_name', 'asc');
         $data['list'] = $query->get();
         $data['residences'] = $group->get();
         return $data;
