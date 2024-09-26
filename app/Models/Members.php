@@ -28,7 +28,7 @@ class Members extends Model
     public static function getMembers($filters = []){
         $data = [];
         $query = self::query();
-        foreach($filters as $key => $filter){
+        foreach($filters->rows as $key => $filter){
             $value = $filter->value ?? null;
             $values = $filter->values ?? null;
             if(!empty($value)){

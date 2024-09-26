@@ -44,6 +44,7 @@ class PDFController extends Controller
     { 
         $filters = json_decode(base64_decode($filter));
         $data = Members::getMembers($filters);
+        $data["col"] = $filters->columns;
         $pdf = PDF::loadView('raport_templates.members_list', $data);
         $pdf->set_paper('a4', 'landscape');
 

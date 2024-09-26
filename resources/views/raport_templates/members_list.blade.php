@@ -94,6 +94,7 @@
         <div class="card-footer report-info" style="position:fixed;bottom:0">Dokumenat je stvoren: <?php echo date("d.m.Y H:i:s"); ?></div>
     </div>
     <hr/>
+    <?php if($col->residence->name): ?>
     <div id="footer">
         <div class="page-number"></div>
     </div>
@@ -128,27 +129,28 @@
         </tfoot>
     </table>
 <hr/>
+<?php endif; ?>
     <h2>Lista Članova</h2>
     <table class="table">
         <thead>
             <tr>
                 <th>#</th>
-                <th>Ime i Prezime</th>
-                <th>Lični broj</th>
-                <th>Prebivalište</th>
-                <th>Email</th>
-                <th>Tel</th>
+                <?php if($col->full_name): ?><th>Ime i Prezime</th> <?php endif; ?>
+                <?php if($col->id_number): ?><th>Lični broj</th> <?php endif; ?>
+                <?php if($col->residence->name): ?><th>Prebivalište</th> <?php endif; ?>
+                <?php if($col->email): ?><th>Email</th> <?php endif; ?>
+                <?php if($col->tel): ?><th>Tel</th> <?php endif; ?>
             </tr>
         </thead>
         <tbody>
             <?php foreach ($list as $key=>$value) : ?>
             <tr>
                 <td>{{ $key + 1 }}.</td>
-                <td>{{ $value->full_name }}</td>
-                <td>{{ $value->id_number }}</td>
-                <td>{{ $value->residence->name }}</td>
-                <td>{{ $value->email }}</td>
-                <td>{{ $value->tel }}</td>
+                <?php if($col->full_name): ?><td>{{ $value->full_name }}</td><?php endif; ?>
+                <?php if($col->id_number): ?><td>{{ $value->id_number }}</td><?php endif; ?>
+                <?php if($col->residence->name): ?><td>{{ $value->residence->name }}</td><?php endif; ?>
+                <?php if($col->email): ?><td>{{ $value->email }}</td><?php endif; ?>
+                <?php if($col->tel): ?><td>{{ $value->tel }}</td><?php endif; ?>
             </tr>
             <?php endforeach; ?>
         </tbody>

@@ -35,19 +35,24 @@ class ListMembers extends ListRecords
     {
         return $table
             ->columns([
+                TextColumn::make('full_name')
+                    ->label('Ime i Prezime')
+                    ->toggleable(),
                 TextColumn::make('id_number')
                     ->label('Lični broj')
-                    ->default("-"),
-                TextColumn::make('full_name')
-                    ->label('Ime i Prezime'),
+                    ->toggleable()
+                    ->default("-"),                
                 TextColumn::make('residence.name')
                     ->label('Prebivalište')
+                    ->toggleable()
                     ->default("-"),
                 TextColumn::make('email')
                     ->label('Email')
+                    ->toggleable()
                     ->default("-"),
                 TextColumn::make('tel')
                     ->label("tel.")
+                    ->toggleable()
                     ->default("-"),
             ])
             ->filters([
@@ -63,7 +68,7 @@ class ListMembers extends ListRecords
                     ->color("danger")
                     ->icon("heroicon-o-document-chart-bar")
                     ->url(function () {
-                        $filter = base64_encode(json_encode($this->tableFilters));
+                        $filter = base64_encode( json_encode([ "rows" =>$this->tableFilters, "columns"=> $this->toggledTableColumns]));
                         return route('pdfMembers', ["filter" => $filter]);
                     })
                     ->openUrlInNewTab()
